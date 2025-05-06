@@ -6,7 +6,6 @@ CREATE TABLE `users` (
   `real_name` varchar(50) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL,
   `phone` varchar(20) DEFAULT NULL,
-  `avatar` varchar(255) DEFAULT NULL,
   `user_type` tinyint(4) NOT NULL DEFAULT 0 COMMENT '0:学生 1:教师 2:管理员',
   `status` tinyint(4) NOT NULL DEFAULT 1 COMMENT '0:禁用 1:启用',
   `created_at` datetime DEFAULT NULL,
