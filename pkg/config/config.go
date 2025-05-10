@@ -12,6 +12,7 @@ type Config struct {
 	Database DatabaseConfig `yaml:"database"`
 	Server   ServerConfig   `yaml:"server"`
 	JWT      JWTConfig      `yaml:"jwt"`
+	AI       AIConfig       `yaml:"ai"`
 }
 
 // DatabaseConfig 数据库配置
@@ -43,6 +44,18 @@ type ServerConfig struct {
 type JWTConfig struct {
 	Secret string        `yaml:"secret"`
 	Expire time.Duration `yaml:"expire"`
+}
+
+// AIConfig AI相关配置
+type AIConfig struct {
+	Coze CozeConfig `yaml:"coze"`
+}
+
+// CozeConfig Coze API配置
+type CozeConfig struct {
+	URL        string `yaml:"url"`
+	Token      string `yaml:"token"`
+	WorkflowID string `yaml:"workflow_id"`
 }
 
 // Load 从文件加载配置

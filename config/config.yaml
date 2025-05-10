@@ -19,3 +19,10 @@ server:
 jwt:
   secret: smart_school_secret_key
   expire: 24h  # 过期时间
+
+# AI对话配置
+ai:
+  coze:
+    url: "https://api.coze.cn/v1/workflow/stream_run"
+    token: "pat_V3WKHNJjN4XeXGHWLjQUV9nz2qZI3dIcdgVIIbs1WqbDDUoJEWNnC7UY6um2cr0h"
+    workflow_id: "7502453464644337698"

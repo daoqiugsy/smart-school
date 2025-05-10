@@ -6,7 +6,7 @@ import (
 )
 
 // RegisterRoutes 注册所有路由
-func RegisterRoutes(r *gin.Engine, authHandler *AuthHandler, scheduleHandler *ScheduleHandler) {
+func RegisterRoutes(r *gin.Engine, authHandler *AuthHandler, scheduleHandler *ScheduleHandler, aiHandler *AIHandler) {
 	// 公开路由组
 	public := r.Group("/api")
 	{
@@ -30,6 +30,8 @@ func RegisterRoutes(r *gin.Engine, authHandler *AuthHandler, scheduleHandler *Sc
 			schedule.POST("/import/api", scheduleHandler.ImportFromAPI)
 			// 获取学生课程表
 			schedule.GET("/student", scheduleHandler.GetStudentSchedule)
+			//ai助手
+			schedule.POST("/ai/chat", aiHandler.Chat)
 		}
 	}
 }

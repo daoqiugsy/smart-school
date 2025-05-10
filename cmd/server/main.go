@@ -79,7 +79,9 @@ func main() {
 	r := gin.Default()
 
 	// 注册路由
-	handler.RegisterRoutes(r, authHandler, scheduleHandler)
+	// 初始化AI处理器
+	aiHandler := handler.NewAIHandler(&cfg.AI.Coze)
+	handler.RegisterRoutes(r, authHandler, scheduleHandler, aiHandler)
 
 	// 启动服务器
 	serverAddr := fmt.Sprintf(":%d", cfg.Server.Port)
