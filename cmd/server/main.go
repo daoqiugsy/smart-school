@@ -2,9 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
 	"log"
 	"smart-school/internal/handler"
 	"smart-school/internal/model"
@@ -12,6 +9,10 @@ import (
 	"smart-school/internal/service"
 	"smart-school/pkg/config"
 	"smart-school/pkg/utils"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 func main() {

@@ -1,8 +1,9 @@
 package handler
 
 import (
-	"github.com/gin-gonic/gin"
 	"smart-school/internal/middleware"
+
+	"github.com/gin-gonic/gin"
 )
 
 // RegisterRoutes 注册所有路由

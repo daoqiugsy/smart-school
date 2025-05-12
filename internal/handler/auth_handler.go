@@ -2,7 +2,6 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
-	"log"
 	"net/http"
 	"smart-school/internal/service"
 	"smart-school/pkg/utils"
@@ -23,29 +22,47 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	var req service.RegisterRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": 400,
+			"msg":  err.Error(),
+			"data": nil,
+		})
 		return
 	}
-	log.Printf("Register")
+
 	// 调用服务层进行注册
 	err := h.authService.Register(req)
 	if err != nil {
 		statusCode := http.StatusInternalServerError
+		code := 500
 		if err == service.ErrUserExists {
 			statusCode = http.StatusConflict
+			code = 409
 		}
-		c.JSON(statusCode, gin.H{"error": err.Error()})
+		c.JSON(statusCode, gin.H{
+			"code": code,
+			"msg":  err.Error(),
+			"data": nil,
+		})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "注册成功"})
+	c.JSON(http.StatusCreated, gin.H{
+		"code": 200,
+		"msg":  "注册成功",
+		"data": nil,
+	})
 }
 
 // Login 用户登录
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req service.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": 400,
+			"msg":  err.Error(),
+			"data": nil,
+		})
 		return
 	}
 
@@ -53,25 +70,40 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	user, err := h.authService.Login(req)
 	if err != nil {
 		statusCode := http.StatusInternalServerError
+		code := 500
 		switch err {
 		case service.ErrUserNotFound, service.ErrInvalidCredentials:
 			statusCode = http.StatusUnauthorized
+			code = 401
 		case service.ErrUserDisabled:
 			statusCode = http.StatusForbidden
+			code = 403
 		}
-		c.JSON(statusCode, gin.H{"error": err.Error()})
+		c.JSON(statusCode, gin.H{
+			"code": code,
+			"msg":  err.Error(),
+			"data": nil,
+		})
 		return
 	}
 
 	// 生成JWT令牌
 	token, err := utils.GenerateToken(user.ID, user.Username, user.UserType)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "生成令牌失败"})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": 500,
+			"msg":  "生成令牌失败",
+			"data": nil,
+		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"token": token,
-		"user":  user,
+		"code": 200,
+		"msg":  "登录成功",
+		"data": gin.H{
+			"token": token,
+			"user":  user,
+		},
 	})
 }
