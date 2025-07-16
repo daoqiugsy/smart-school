@@ -72,6 +72,39 @@ func (h *ScheduleHandler) ImportFromAPI(c *gin.Context) {
 		return
 	}
 
+	// 获取上传的文件
+	file, _, err := c.Request.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "请上传CSV文件"})
+		return
+	}
+	defer file.Close()
+}
+
+// ImportFromExcel 从Excel导入课程表
+func (h *ScheduleHandler) ImportFromExcel(c *gin.Context) {
+	// 获取当前用户ID
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "未授权"})
+		return
+	}
+
+	// 获取上传的文件
+	file, _, err := c.Request.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "请上传Excel文件"})
+		return
+	}
+	defer file.Close()
+
+	// 调用服务层导入课程表
+	err = h.scheduleService.ImportFromExcel(uint(userID.(uint)), file)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"message": "课程表导入成功"})
 }
 
