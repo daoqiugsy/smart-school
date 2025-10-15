@@ -1,8 +1,11 @@
 package service
 
 import (
+	"context"
 	"encoding/csv"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"smart-school/internal/model"
 	"smart-school/internal/repository"
@@ -10,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -22,19 +26,21 @@ type ScheduleService interface {
 	// ImportFromAPI 从教务系统API导入课程表
 	ImportFromAPI(studentID uint, apiURL, username, password string) error
 	// GetStudentSchedule 获取学生课程表
-	GetStudentSchedule(studentID uint) ([]model.CourseSchedule, error)
+	GetStudentSchedule(userID uint) ([]model.CourseSchedule, error)
 }
 
 type scheduleService struct {
 	studentRepo repository.StudentRepository
 	courseRepo  repository.CourseRepository
+	rdb         *redis.Client
 }
 
 // NewScheduleService 创建课程表服务实例
-func NewScheduleService(studentRepo repository.StudentRepository, courseRepo repository.CourseRepository) ScheduleService {
+func NewScheduleService(studentRepo repository.StudentRepository, courseRepo repository.CourseRepository, rdb *redis.Client) ScheduleService {
 	return &scheduleService{
 		studentRepo: studentRepo,
 		courseRepo:  courseRepo,
+		rdb:         rdb,
 	}
 }
 
@@ -84,6 +90,26 @@ func (s *scheduleService) ImportFromAPI(studentID uint, apiURL, username, passwo
 
 // GetStudentSchedule 获取学生课程表
 func (s *scheduleService) GetStudentSchedule(userID uint) ([]model.CourseSchedule, error) {
+	ctx := context.Background()
+	var schedules []model.CourseSchedule
+	// 定义缓存键
+	cacheKey := fmt.Sprintf("schedule:%d", userID)
+	// 尝试从redis获得数据
+	val, err := s.rdb.Get(ctx, cacheKey).Result()
+	if err == nil {
+		// 缓存命中
+		// 将从 Redis (string) 中取出的数据反序列化成我们的结构体切片
+		err = json.Unmarshal([]byte(val), &schedules)
+		if err == nil {
+			return schedules, nil
+		}
+	}
+	// 如果 err 不是 redis.Nil (意味着是其他错误，比如连接断了)，我们可以记录日志
+	if err != redis.Nil {
+		// logger.Log.Warn("Redis error on get schedule", zap.Error(err))
+	}
+	// 3. 缓存未命中 (Cache Miss)，执行原有逻辑从数据库查询
+	// logger.Log.Info("Cache miss for student schedule", zap.Uint("userID", userID))
 	// 根据用户ID获取学生信息
 	student, err := s.studentRepo.FindByUserID(userID)
 	if err != nil {
@@ -97,7 +123,6 @@ func (s *scheduleService) GetStudentSchedule(userID uint) ([]model.CourseSchedul
 	}
 
 	// 获取课程安排
-	var schedules []model.CourseSchedule
 	for _, course := range courses {
 		courseSchedules, err := s.courseRepo.GetCourseSchedules(course.CourseID)
 		if err != nil {
@@ -105,7 +130,13 @@ func (s *scheduleService) GetStudentSchedule(userID uint) ([]model.CourseSchedul
 		}
 		schedules = append(schedules, courseSchedules...)
 	}
-
+	// 4. (关键) 将从数据库查出的数据存入 Redis
+	// 先将我们的结构体切片序列化成 JSON 字符串
+	jsonData, err := json.Marshal(schedules)
+	if err == nil {
+		// 存入 Redis，并设置 1 小时的过期时间
+		s.rdb.Set(ctx, cacheKey, jsonData, 1*time.Hour).Err()
+	}
 	return schedules, nil
 }
 

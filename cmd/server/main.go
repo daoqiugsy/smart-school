@@ -1,7 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 	"log"
 	"smart-school/internal/handler"
 	"smart-school/internal/model"
@@ -9,15 +14,11 @@ import (
 	"smart-school/internal/service"
 	"smart-school/pkg/config"
 	"smart-school/pkg/utils"
-
-	"github.com/gin-gonic/gin"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
 )
 
 func main() {
 	// 加载配置文件
-	cfg, err := config.Load("config/config.yaml")
+	cfg, err := config.Load("config/config_local.yaml")
 	if err != nil {
 		log.Fatalf("加载配置文件失败: %v", err)
 	}
@@ -67,6 +68,20 @@ func main() {
 
 	log.Println("数据库迁移完成")
 
+	// 初始化Redis连接
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
+	})
+
+	// 检查Redis连接
+	_, err = rdb.Ping(context.Background()).Result()
+	if err != nil {
+		log.Fatal("Redis连接失败: %v", err)
+	}
+	//logger.Log.Info("Redis 连接成功！")
+
 	// 初始化仓库
 	userRepo := repository.NewUserRepository(db)
 	studentRepo := repository.NewStudentRepository(db)
@@ -75,7 +90,7 @@ func main() {
 
 	// 初始化服务
 	authService := service.NewAuthService(userRepo, studentRepo, teacherRepo)
-	scheduleService := service.NewScheduleService(studentRepo, courseRepo)
+	scheduleService := service.NewScheduleService(studentRepo, courseRepo, rdb)
 
 	// 初始化处理器
 	authHandler := handler.NewAuthHandler(authService)
