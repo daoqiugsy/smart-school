@@ -22,6 +22,11 @@ func main() {
 		log.Fatalf("加载配置文件失败: %v", err)
 	}
 
+	log.Printf("-------------------------------------------")
+	log.Printf("Loaded Coze URL: %s", cfg.AI.Coze.URL)
+	log.Printf("Loaded Coze Token: %s", cfg.AI.Coze.Token)
+	log.Printf("Loaded Coze WorkflowID: %s", cfg.AI.Coze.WorkflowID)
+	log.Printf("-------------------------------------------")
 	// 设置Gin模式
 	gin.SetMode(cfg.Server.Mode)
 
@@ -81,7 +86,8 @@ func main() {
 
 	// 注册路由
 	// 初始化AI处理器
-	aiHandler := handler.NewAIHandler(&cfg.AI.Coze)
+	aiSerive := service.NewAIService(&cfg.AI.Coze)
+	aiHandler := handler.NewAIHandler(aiSerive)
 	handler.RegisterRoutes(r, authHandler, scheduleHandler, aiHandler)
 
 	// 启动服务器

@@ -1,11 +1,11 @@
 # 数据库配置
 database:
   driver: mysql
-  host: 127.0.0.1
+  host: db
   port: 3306
-  username: root
-  password: wangjunyi
-  dbname: smart_school
+  username: user
+  password: password
+  dbname: smart_school_db
   charset: utf8mb4
   parseTime: true
   loc: Local
@@ -24,5 +24,5 @@ jwt:
 ai:
   coze:
     url: "https://api.coze.cn/v1/workflow/stream_run"
-    token: "pat_V3WKHNJjN4XeXGHWLjQUV9nz2qZI3dIcdgVIIbs1WqbDDUoJEWNnC7UY6um2cr0h"
-    workflow_id: "7502453464644337698"
+    token: "pat_gaF9SalaATC196OLGavZQBicUVHRlqvg4TPM5m3jmF3PiiKxpcKlBZP4p004e8K3"
+    workflow_id: "7559133188720017417"

@@ -1,0 +1,347 @@
+{
+  "info": {
+    "_postman_id": "d8a1b2c3-4d5e-6f78-9a0b-1c2d3e4f5a6b",
+    "name": "Smart School API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "API collection for the Smart School project."
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "description": "User registration and login endpoints.",
+      "item": [
+        {
+          "name": "Register Student",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"student001\",\n    \"password\": \"password123\",\n    \"real_name\": \"张三\",\n    \"email\": \"student001@example.com\",\n    \"phone\": \"13800138001\",\n    \"user_type\": 0,\n    \"student_id\": \"S2025001\",\n    \"grade\": \"2025\",\n    \"class\": \"软件工程1班\",\n    \"major\": \"软件工程\",\n    \"department\": \"计算机学院\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Registers a new user with the type 'Student' (user_type: 0)."
+          },
+          "response": []
+        },
+        {
+          "name": "Register Teacher",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"teacher001\",\n    \"password\": \"password123\",\n    \"real_name\": \"李四\",\n    \"email\": \"teacher001@example.com\",\n    \"phone\": \"13900139001\",\n    \"user_type\": 1,\n    \"teacher_id\": \"T2025001\",\n    \"title\": \"教授\",\n    \"department\": \"计算机学院\",\n    \"office\": \"科技楼A401\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Registers a new user with the type 'Teacher' (user_type: 1)."
+          },
+          "response": []
+        },
+        {
+          "name": "User Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (pm.response.code === 200 && jsonData && jsonData.data && jsonData.data.token) {",
+                  "    pm.collectionVariables.set(\"jwt_token\", jsonData.data.token);",
+                  "    console.log(\"JWT Token saved successfully.\");",
+                  "} else {",
+                  "    console.error(\"Failed to get JWT Token from login response.\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"student001\",\n    \"password\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Logs in a user and automatically saves the JWT token to a collection variable `jwt_token`."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Schedule Management",
+      "description": "Endpoints for managing student schedules. Requires authentication.",
+      "item": [
+        {
+          "name": "Get Student Schedule",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/schedule/student",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "schedule",
+                "student"
+              ]
+            },
+            "description": "Fetches the schedule for the currently authenticated student."
+          },
+          "response": []
+        },
+        {
+          "name": "Import Schedule from CSV",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/schedule/import/csv",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "schedule",
+                "import",
+                "csv"
+              ]
+            },
+            "description": "Upload a CSV file to import a student's schedule. The file should be attached under the 'file' key in the form-data body."
+          },
+          "response": []
+        },
+        {
+          "name": "Import Schedule from Excel",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/schedule/import/excel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "schedule",
+                "import",
+                "excel"
+              ]
+            },
+            "description": "Upload an Excel file (.xlsx) to import a student's schedule. The file should be attached under the 'file' key in the form-data body."
+          },
+          "response": []
+        },
+        {
+          "name": "Import Schedule from API",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"api_url\": \"https://example-sis.com/api/schedule\",\n    \"username\": \"your-sis-username\",\n    \"password\": \"your-sis-password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/schedule/import/api",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "schedule",
+                "import",
+                "api"
+              ]
+            },
+            "description": "Import schedule by providing credentials for an external student information system (SIS) API. Note: The backend logic for this is a placeholder and needs implementation."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "AI Assistant",
+      "description": "Endpoints for interacting with the AI assistant. Requires authentication.",
+      "item": [
+        {
+          "name": "Chat with AI",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "text/event-stream"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"query\": \"你好，请介绍一下你自己。\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/schedule/ai/chat",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "schedule",
+                "ai",
+                "chat"
+              ]
+            },
+            "description": "Sends a query to the AI assistant. This endpoint provides a streaming response (Server-Sent Events). Postman can handle and display SSE streams."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string",
+      "description": "The base URL of the Smart School API server."
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string",
+      "description": "JWT token obtained after successful login. This is set automatically."
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ]
+}

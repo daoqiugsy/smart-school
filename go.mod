@@ -5,7 +5,6 @@ go 1.23.0
 toolchain go1.24.2
 
 require (
-	github.com/cloudwego/eino v0.3.27
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/xuri/excelize/v2 v2.9.0
 	golang.org/x/crypto v0.38.0
@@ -15,12 +14,15 @@ require (
 require (
 	github.com/bytedance/sonic v1.13.2 // indirect
 	github.com/bytedance/sonic/loader v0.2.4 // indirect
+	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/cloudwego/base64x v0.1.5 // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.20.0 // indirect
+	github.com/go-redis/redis/v8 v8.11.0 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
