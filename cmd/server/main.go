@@ -13,6 +13,7 @@ import (
 	"smart-school/internal/repository"
 	"smart-school/internal/service"
 	"smart-school/pkg/config"
+	"smart-school/pkg/logger"
 	"smart-school/pkg/utils"
 )
 
@@ -22,7 +23,14 @@ func main() {
 	if err != nil {
 		log.Fatalf("加载配置文件失败: %v", err)
 	}
+	// 2. 初始化日志 (必须是第二步，紧跟在配置加载之后
+	if err := logger.InitLogger(cfg.Server.Mode); err != nil {
+		log.Fatalf("初始化日志失败: %v", err)
+	}
+	defer logger.Log.Sync() // 确保日志被写入
 
+	// 从这里开始，我们就可以安全地使用 logger.Log 了
+	logger.Log.Info("日志系统初始化成功！")
 	log.Printf("-------------------------------------------")
 	log.Printf("Loaded Coze URL: %s", cfg.AI.Coze.URL)
 	log.Printf("Loaded Coze Token: %s", cfg.AI.Coze.Token)
@@ -80,7 +88,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Redis连接失败: %v", err)
 	}
-	//logger.Log.Info("Redis 连接成功！")
+	logger.Log.Info("Redis 连接成功！")
 
 	// 初始化仓库
 	userRepo := repository.NewUserRepository(db)
@@ -101,8 +109,8 @@ func main() {
 
 	// 注册路由
 	// 初始化AI处理器
-	aiSerive := service.NewAIService(&cfg.AI.Coze)
-	aiHandler := handler.NewAIHandler(aiSerive)
+	aiService := service.NewAIService(&cfg.AI.Coze)
+	aiHandler := handler.NewAIHandler(aiService)
 	handler.RegisterRoutes(r, authHandler, scheduleHandler, aiHandler)
 
 	// 启动服务器

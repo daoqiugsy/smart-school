@@ -6,15 +6,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/go-redis/redis/v8"
+	"github.com/xuri/excelize/v2"
+	"go.uber.org/zap"
 	"io"
 	"smart-school/internal/model"
 	"smart-school/internal/repository"
+	"smart-school/pkg/logger"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/go-redis/redis/v8"
-	"github.com/xuri/excelize/v2"
 )
 
 // ScheduleService 课程表服务接口
@@ -101,6 +102,7 @@ func (s *scheduleService) GetStudentSchedule(userID uint) ([]model.CourseSchedul
 		// 将从 Redis (string) 中取出的数据反序列化成我们的结构体切片
 		err = json.Unmarshal([]byte(val), &schedules)
 		if err == nil {
+			logger.Log.Info("Cache hit for student schedule", zap.Uint("userID", userID))
 			return schedules, nil
 		}
 	}

@@ -8,6 +8,7 @@ require (
 	github.com/go-redis/redis/v8 v8.11.0
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/xuri/excelize/v2 v2.9.0
+	go.uber.org/zap v1.27.0
 	golang.org/x/crypto v0.38.0
 	gorm.io/gorm v1.26.0
 )
@@ -39,6 +40,7 @@ require (
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	github.com/xuri/efp v0.0.0-20240408161823-9ad904a10d6d // indirect
 	github.com/xuri/nfp v0.0.0-20240318013403-ab9948c2c4a7 // indirect
+	go.uber.org/multierr v1.10.0 // indirect
 	golang.org/x/arch v0.11.0 // indirect
 	golang.org/x/net v0.30.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
