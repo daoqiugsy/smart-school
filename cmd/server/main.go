@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
+	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"log"
+	"os"
 	"smart-school/internal/handler"
 	"smart-school/internal/model"
 	"smart-school/internal/repository"
@@ -20,6 +22,7 @@ import (
 func main() {
 	// 加载配置文件
 	cfg, err := config.Load("config/config_local.yaml")
+	//cfg, err := config.Load("config/config.yaml")
 	if err != nil {
 		log.Fatalf("加载配置文件失败: %v", err)
 	}
@@ -43,6 +46,10 @@ func main() {
 	utils.InitJWT(&cfg.JWT)
 
 	// 初始化数据库连接
+	dbHost := os.Getenv("DB_HOST")
+	if dbHost != "" {
+		cfg.Database.Host = dbHost // 如果环境变量值存在，用环境变量的值覆盖配置文件中的值
+	}
 	db, err := gorm.Open(mysql.Open(cfg.Database.DSN()), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("数据库连接失败: %v", err)
@@ -77,12 +84,20 @@ func main() {
 	log.Println("数据库迁移完成")
 
 	// 初始化Redis连接
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
-		DB:       0,
-	})
+	redisHost := os.Getenv("REDIS_HOST") // 尝试读取 REDIS_HOST 环境变量
+	if redisHost != "" {
+		cfg.Redis.Addr = redisHost + ":6379" // 如果环境变量不存在，默认使用 localhost
+		logger.Log.Info("检测到 REDIS_HOST 环境变量, Redis 主机设置为", zap.String("host", redisHost))
+	}
 
+	rdb := redis.NewClient(&redis.Options{
+		//Addr:     redisHost + "6379",
+		//Password: "",
+		//DB:       0,
+		Addr:     cfg.Redis.Addr,
+		Password: cfg.Redis.Password,
+		DB:       cfg.Redis.DB,
+	})
 	// 检查Redis连接
 	_, err = rdb.Ping(context.Background()).Result()
 	if err != nil {

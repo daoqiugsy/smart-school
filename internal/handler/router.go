@@ -35,5 +35,10 @@ func RegisterRoutes(r *gin.Engine, authHandler *AuthHandler, scheduleHandler *Sc
 			//ai助手
 			schedule.POST("/ai/chat", aiHandler.Chat)
 		}
+		aiGroup := protected.Group("/ai")
+		{
+			aiGroup.POST("/chat/async", aiHandler.ChatV2)  // 发起异步任务
+			aiGroup.GET("/ws", aiHandler.WebSocketHandler) // 建立WS连接	// 获取异步任务结果
+		}
 	}
 }

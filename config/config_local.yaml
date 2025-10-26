@@ -26,3 +26,13 @@ ai:
     url: "https://api.coze.cn/v1/workflow/stream_run"
     token: "pat_gaF9SalaATC196OLGavZQBicUVHRlqvg4TPM5m3jmF3PiiKxpcKlBZP4p004e8K3"
     workflow_id: "7559133188720017417"
+
+# RabbitMQ 配置
+rabbitmq:
+  url: "amqp://guest:guest@localhost:5672/"
+
+# --- 新增：Redis 配置 ---
+redis:
+  addr: "localhost:6379" # Redis 的地址和端口
+  password: ""            # Redis 的密码，我们本地没有设置，所以为空
+  db: 0                   # 使用的数据库编号，0 是默认值

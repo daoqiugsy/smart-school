@@ -14,6 +14,8 @@ type Config struct {
 	Server   ServerConfig   `yaml:"server"`
 	JWT      JWTConfig      `yaml:"jwt"`
 	AI       AIConfig       `yaml:"ai"`
+	RabbitMQ RabbitMQConfig `yaml:"rabbitmq"`
+	Redis    RedisConfig    `yaml:"redis"`
 }
 
 // DatabaseConfig 数据库配置
@@ -73,4 +75,15 @@ func Load(file string) (*Config, error) {
 	}
 
 	return &config, nil
+}
+
+// --- 新增：Redis 配置结构体 ---
+type RedisConfig struct {
+	Addr     string `yaml:"addr"`
+	Password string `yaml:"password"`
+	DB       int    `yaml:"db"`
+}
+
+type RabbitMQConfig struct {
+	URL string `yaml:"url"`
 }

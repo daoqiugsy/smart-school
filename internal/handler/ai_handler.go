@@ -3,10 +3,15 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gin-gonic/gin"
+	"github.com/streadway/amqp"
+	"log"
 	"net/http"
+	"reflect"
 	"smart-school/internal/service"
 	_ "smart-school/internal/service"
+
+	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 )
 
 //type AIService interface {
@@ -33,6 +38,143 @@ type ChatRequest struct {
 	Query string `json:"query" binding:"required"`
 }
 
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true // 允许所有来源，生产环境中应根据实际情况配置
+	},
+}
+
+type WXMessage struct {
+	Query    string `json:"query"`
+	UserID   string `json:"user_id"`
+	UserType string `json:"user_type"`
+}
+
+func (h *AIHandler) ChatV2(c *gin.Context) {
+	var req ChatRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "无效的请求参数", "data": nil})
+		return
+	}
+	//	从上下文安全获得用户信息
+	userIDVal, exists1 := c.Get("userID")
+	userTypeVal, exists2 := c.Get("userType")
+	if !exists1 || !exists2 {
+		c.JSON(http.StatusUnauthorized, gin.H{"code": 401, "msg": "未找到用户信息", "data": nil})
+		return
+	}
+	//// 将 interface{} 转换为 uint，然后再转换为字符串
+	//var userID uint
+	//if id, ok := userIDVal.(uint); ok {
+	//	userID = id
+	//}
+	userIDStr := fmt.Sprintf("%d", userIDVal.(uint))
+	//userIDStr := fmt.Sprintf("%d", userID)
+	//	1. 打包消息
+	msg := WXMessage{
+		Query:    req.Query,
+		UserID:   userIDStr,
+		UserType: fmt.Sprintf("%v", userTypeVal),
+	}
+	msgBody, _ := json.Marshal(msg)
+	//	2. 发送到RabbitMQ，暂时采用硬编码连接
+	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "msg": "RabbitMQ连接失败", "data": nil})
+		return
+	}
+	defer conn.Close()
+
+	ch, err := conn.Channel()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "msg": "RabbitMQ通道创建失败", "data": nil})
+		return
+	}
+	defer ch.Close()
+
+	//	声明一个“ai_tasks”队列
+	q, err := ch.QueueDeclare(
+		"ai_tasks", // 队列名称
+		true,       // 是否持久化
+		false,      // 是否自动删除
+		false,      // 是否独占
+		false,      // 是否等待服务器确认
+		nil,        // 其他属性
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "msg": "RabbitMQ队列创建失败", "data": nil})
+		return
+	}
+
+	// 发布消息到队列
+	err = ch.Publish(
+		"",     // 交换机名称
+		q.Name, // 队列名称
+		false,  // 是否强制发送
+		false,  // 是否等待服务器确认
+		amqp.Publishing{
+			ContentType: "application/json",
+			Body:        []byte(msgBody),
+		},
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "msg": "RabbitMQ消息发布失败", "data": nil})
+		return
+	}
+	log.Printf("消息已发布到队列 %s: %s", q.Name, msgBody)
+
+	// 3. 立即返回响应
+	c.JSON(http.StatusOK, gin.H{
+		"code": 200,
+		"msg":  "任务已接收，正在处理，通过WebSocket接收结果",
+	})
+}
+
+// WebSocketHandler处理websocket连接
+func (h *AIHandler) WebSocketHandler(c *gin.Context) {
+	// 获取用户ID，标识websocket连接
+	userIDVal, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"code": 401, "msg": "未找到用户信息", "data": nil})
+		return
+	}
+
+	log.Printf("!!!!!! DEBUG: Type of userIDVal is: %s", reflect.TypeOf(userIDVal))
+
+	//// 将 interface{} 转换为 uint，然后再转换为字符串
+	//var userID uint
+	//if id, ok := userIDVal.(uint); ok {
+	//	userID = id
+	//}
+	userIDStr := fmt.Sprintf("%d", userIDVal.(uint))
+	//userIDStr := fmt.Sprintf("%d", userID)
+	//userIDStr := fmt.Sprintf("%v", userID)
+	//userIDStr := strings.Trim(fmt.Sprintf("%v", userID), "[]")
+	// 升级HTTP连接为WebSocket
+	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "msg": "WebSocket升级失败", "data": nil})
+		log.Printf("WebSocket升级失败: %v", err)
+		return
+	}
+	defer conn.Close()
+
+	// 我们将在这里直接处理 Redis Pub/Sub 的订阅逻辑
+	service.SubscribeAndForward(c.Request.Context(), userIDStr, conn)
+	////	核心逻辑，将连接存起来，等待Worker推送消息
+	//service.AddWsClient(userIDStr, conn)
+	//defer service.RemoveWsClient(userIDStr)
+	//
+	////	保持连接打开，处理客户端发送来的心跳
+	//for {
+	//	// 读取客户端消息
+	//	if _, _, err := conn.ReadMessage(); err != nil {
+	//		log.Printf("WebSocket读取消息失败: %v", err)
+	//		break
+	//	}
+	//}
+}
+
 // Chat 处理AI聊天请求
 func (h *AIHandler) Chat(c *gin.Context) {
 	// 1. 解析请求参数
@@ -49,25 +191,6 @@ func (h *AIHandler) Chat(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"code": 401, "msg": "未找到用户信息", "data": nil})
 		return
 	}
-	////	从上下文中获取用户类型
-	//userType, typeExists := c.Get("userType")
-	//if !typeExists {
-	//	c.JSON(http.StatusUnauthorized, gin.H{"code": 401, "msg": "未找到用户类型信息", "data": nil})
-	//	return
-	//}
-	//
-	////	将userType转换为字符串
-	//var userTypeStr string
-	//switch userType.(int) { // 假设 userType 在 JWT 中是 int 类型
-	//case 0:
-	//	userTypeStr = "student"
-	//case 1:
-	//	userTypeStr = "teacher"
-	//default:
-	//	userTypeStr = "unknown"
-	//}
-	//// 将 userID 转换为字符串
-	//userIDStr := strconv.FormatUint(uint64(userID.(uint)), 10)
 
 	// 3. 用户信息转换为字符串
 	userIDStr := fmt.Sprintf("%v", userID)

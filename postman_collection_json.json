@@ -259,7 +259,7 @@
       "description": "Endpoints for interacting with the AI assistant. Requires authentication.",
       "item": [
         {
-          "name": "Chat with AI",
+          "name": "Chat with AI (Streaming)",
           "request": {
             "method": "POST",
             "header": [
@@ -296,6 +296,63 @@
             "description": "Sends a query to the AI assistant. This endpoint provides a streaming response (Server-Sent Events). Postman can handle and display SSE streams."
           },
           "response": []
+        },
+        {
+          "name": "Chat with AI (Async)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"query\": \"我有哪些课？\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ai/chat/async",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ai",
+                "chat",
+                "async"
+              ]
+            },
+            "description": "Sends a query to the AI assistant for asynchronous processing. Results will be pushed via WebSocket."
+          },
+          "response": []
+        },
+        {
+          "name": "AI Results WebSocket",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "ws://localhost:8080/api/ai/ws",
+              "protocol": "ws",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "ai",
+                "ws"
+              ]
+            },
+            "description": "Establishes a WebSocket connection to receive asynchronous AI chat results. Requires authentication."
+          },
+          "response": []
         }
       ]
     }
@@ -321,7 +378,7 @@
       "key": "jwt_token",
       "value": "",
       "type": "string",
-      "description": "JWT token obtained after successful login. This is set automatically."
+      "description": "JWT token obtained after successful login. This is set automatically by the 'User Login' request's test script."
     }
   ],
   "event": [
