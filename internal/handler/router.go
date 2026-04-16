@@ -24,7 +24,7 @@ func RegisterRoutes(r *gin.Engine, authHandler *AuthHandler, scheduleHandler *Sc
 
 	protected.Use(middleware.JWTAuth())
 	{
-		// 课程表相关路由
+		// 课程表相关哈哈哈
 		schedule := protected.Group("/schedule")
 		{
 			// 导入课程表
