@@ -19,7 +19,7 @@ func RegisterRoutes(r *gin.Engine, authHandler *AuthHandler, scheduleHandler *Sc
 		}
 	}
 
-	// 需要认证的路由组
+	// 需不要
 	protected := r.Group("/api")
 	protected.Use(middleware.JWTAuth())
 	{
