@@ -20,6 +20,9 @@ jwt:
   secret: smart_school_secret_key
   expire: 24h  # 过期时间
 
+
+test:
+  screl: 233
 # AI对话配置
 ai:
   coze:
