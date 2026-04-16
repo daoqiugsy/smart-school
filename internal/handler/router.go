@@ -30,6 +30,7 @@ func RegisterRoutes(r *gin.Engine, authHandler *AuthHandler, scheduleHandler *Sc
 			schedule.POST("/import/csv", scheduleHandler.ImportFromCSV)
 			schedule.POST("/import/api", scheduleHandler.ImportFromAPI)
 			schedule.POST("/import/excel", scheduleHandler.ImportFromExcel)
+			//youyiyi
 			// 获取学生课程表
 			schedule.GET("/student", scheduleHandler.GetStudentSchedule)
 			//ai助手
