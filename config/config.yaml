@@ -8,6 +8,8 @@ database:
   dbname: smart_school
   charset: utf8mb4
   parseTime: true
+
+
   loc: Local
 
 # 服务器配置
