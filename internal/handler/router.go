@@ -19,8 +19,9 @@ func RegisterRoutes(r *gin.Engine, authHandler *AuthHandler, scheduleHandler *Sc
 		}
 	}
 
-	// 需不要
+	// 需
 	protected := r.Group("/api")
+
 	protected.Use(middleware.JWTAuth())
 	{
 		// 课程表相关路由
